@@ -5,7 +5,8 @@
   pause
   cls
 :compile
-  C:\MinGW\bin\gcc.exe main.c -o main
+  C:\MinGW\bin\gcc.exe ./src/main.c -o ./build/main
 :run
-  main.exe
+  "./build/main.exe"
   goto start
+  
