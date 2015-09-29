@@ -9,6 +9,18 @@ int char_is_operator( char c ){
 	return 0;
 }
 
+int char_is_symbol( char c ){
+	
+	if( char_is_operator( c ) ){
+		return 1;
+	}
+	
+	if( c == '(' ) return 1;
+	if( c == ')' ) return 1;
+
+	return 0;
+}
+
 // Returns true if char is numerical ( 0-9 )
 int char_is_numerical( char c ){
 	
