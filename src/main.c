@@ -4,6 +4,7 @@
 
 #include "charlib.c"
 #include "token.c"
+#include "file.c"
 
 /* 
 * An operator is any char that represents a math operation.
@@ -66,24 +67,24 @@ int string_to_tokens( char *str ){
 				tokenIndex++;
 				readingNumber = 0;
 			}
-		}
-		
-		if ( char_is_symbol( c ) ){
-			struct Token t; 
 			
-			t.value = 0;
-			
-			if( c == '+' ) t.type = T_PLUS;
-			if( c == '-' ) t.type = T_MINUS;
-			if( c == '*' ) t.type = T_MULTIPLY;
-			if( c == '/' ) t.type = T_DIVIDE;
-			if( c == '(' ) t.type = T_OPEN_P;
-			if( c == ')' ) t.type = T_CLOSE_P;
-			
-			tokens[ tokenIndex ] = t;
-			tokenIndex++;
-		}
-		
+			// 
+			if ( char_is_symbol( c ) ){
+				struct Token t; 
+				
+				t.value = 0;
+				
+				if( c == '+' ) t.type = T_PLUS;
+				if( c == '-' ) t.type = T_MINUS;
+				if( c == '*' ) t.type = T_MULTIPLY;
+				if( c == '/' ) t.type = T_DIVIDE;
+				if( c == '(' ) t.type = T_OPEN_P;
+				if( c == ')' ) t.type = T_CLOSE_P;
+				
+				tokens[ tokenIndex ] = t;
+				tokenIndex++;
+			}
+		}		
 		
 		if( !char_is_numerical( c ) && !char_is_operator( c) && (c != '\0') ){
 			printf("Unknown Char: '%c' at %d \n",c,i);
@@ -109,7 +110,9 @@ int main(int argc, char *argv[])
 {
 	char *test_input = "123+(3-32)*34";
 	
-	eval( test_input );
+	//eval( test_input );
 
+	file_read_string( "./src/test.rcs" );
+	
     return 0;
 }
