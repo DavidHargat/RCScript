@@ -39,6 +39,8 @@ void print_token( struct Token *t ){
 	}
 }
 
+// Counts the total number of tokens in a string
+
 int count_tokens( char *str ){
 	int l = strlen( str );
 	

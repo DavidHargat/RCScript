@@ -11,8 +11,6 @@
 * 	Ex. '+' of '1+1'*
 */
 
-// Counts the total number of tokens in a string
-
 int substring_to_number(char *str, int start, int end){
 	
 	// Total number of digits in our output number.
