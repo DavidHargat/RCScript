@@ -13,14 +13,14 @@ struct Token{
 */
 
 // Return a Token* with given parameters.
-struct Token *createToken( TokenType type, int value ){
+struct Token create_token( TokenType type, int value ){
 	struct Token *t = malloc( sizeof( struct Token ) );
 	t->type = type;
 	t->value = value;
-	return t;
+	return *t;
 }
 
-// Convert enum TokenTyp to a string.
+// Convert enum TokenType to a string.
 char *TokenType_to_string( TokenType t ){
 	if( t>=0 && t<=6 ){
 		char *table[] = {"#","+","-","*","/","(",")"};

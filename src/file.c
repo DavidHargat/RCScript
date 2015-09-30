@@ -1,4 +1,9 @@
 
+/*
+* Reads an entire file to a string.
+* Returns it as a pointer. 
+*/
+
 char *file_read_string(char *filename){
 	FILE *f;
 	
@@ -26,8 +31,6 @@ char *file_read_string(char *filename){
 	for( i=0; i<file_size; i++){
 		buf[i] = fgetc( f );
 	}
-	
-	printf( "'%s'\n", buf );
 		
 	fclose( f );
 	

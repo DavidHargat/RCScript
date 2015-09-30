@@ -28,13 +28,13 @@ int substring_to_number(char *str, int start, int end){
 }
 
 // Converts a string of chars to an array of Tokens.
-int string_to_tokens( char *str ){
+struct Token *string_to_tokens( char *str ){
 	
 	// Count how many tokens we should find in the string.
 	int num_of_tokens = count_tokens( str );
 	
-	// Array of tokens
-	struct Token tokens [num_of_tokens];
+	// pointer to an Array of tokens (not to be confused with an array of pointers)
+	struct Token *tokens = malloc(sizeof(struct Token) * num_of_tokens);
 	
 	int tokenIndex = 0;
 	
@@ -58,9 +58,10 @@ int string_to_tokens( char *str ){
 			// If we're in 'reading number mode', and we hit a char that is not numeric
 			if( readingNumber == 1 ){
 				// We got ourselves a number token.
-				struct Token t;
-				t.type = T_NUMBER;
-				t.value = substring_to_number(str,numberStart,i);
+				
+				int value = substring_to_number(str,numberStart,i);
+				
+				struct Token t = create_token( T_NUMBER, value );
 				
 				tokens[ tokenIndex ] = t;
 				
@@ -91,28 +92,113 @@ int string_to_tokens( char *str ){
 		}	
 	}
 	
-	for( i=0; i<num_of_tokens; i++){
-		print_token(&tokens[i]);
+	return tokens;
+}
+
+void print_tokens( struct Token *tokens, int length ){
+	int i;
+	for( i=0; i<length; i++){
+		print_token( &tokens[i] );
 	}
 }
 
 
-void eval( char *str ){
-	int num_of_tokens = count_tokens( str );
+/* resolve_operation parameters: 
+* 	*tokens: is the array of tokens we're mutating, 
+*	length: is of *tokens 
+*	index: of the operation we wish to resolve.
+*
+* Rather than returning a new 'token array' we modify the given array.
+*/
+
+
+void resolve_operation( struct Token *tokens, int length, int index){
 	
-	printf( "Input: %s \n", str );	
-	printf( "Number Of Tokens: %d \n", num_of_tokens );
+	// Create pointers to the token at [index] as well as it's "neighbours" (i+1 and i-1)
+	struct Token t_op, t_a, t_b;
+	t_op = tokens[index];
+	t_a  = tokens[index-1];
+	t_b  = tokens[index+1];
 	
-	string_to_tokens( str );
+	// Extract the values from the numerical tokens.
+	int a,b;
+	a = t_a.value;
+	b = t_b.value;
+
+	// Extract the type from the operator.
+	TokenType t = t_op.type;
+
+	// Calculate the result.
+	int result = 0;
+	if (t == T_PLUS )
+		result = a + b;
+	if (t == T_MINUS )
+		result = a - b;
+	if (t == T_MULTIPLY )
+		result = a * b;
+	if (t == T_DIVIDE )
+		result = a / b;
+
+	
+	/* 
+	* STITCHING ( this part is kinda hard to follow, here's a visualization. )	
+	* Lets say you want to stitch [3]
+	* [0,1,2,3,4,5,6,7,8,9] // our beginning array
+	* [0,1, , , ,5,6,7,8,9] // we're resolving (2,3,4) ex. (1,+,1)
+	* [0,1, ,5,6,7,8,9]     // we move everything from (3+2) back two spaces.
+	* [0,1,r,5,6,7,8,9]     // 'result' new resides where '2' was.
+	*/
+	
+	// Move everything from index+2 back 2 spaces
+	int start = index+2;
+	int i;
+	for( i=start; i<length; i++ ){
+		tokens[i-2] = tokens[i];
+	}
+	
+	// 'Shave' off the last two tokens as we have reduced the total size of the array.
+	// Rather than 'removing' we assign them to null tokens.
+	struct Token T_NULL = create_token(-1,0);
+	tokens[length-1] = T_NULL;
+	tokens[length-2] = T_NULL;
+	
+	// Create a new 'result' token.
+	struct Token r = create_token(T_NUMBER,result);
+	// Insert the 'result' token.
+	tokens[index-1] = r;
+	
+	
 }
 
-int main(int argc, char *argv[])
-{
-	char *test_input = "123+(3-32)*34";
-	
-	//eval( test_input );
 
-	file_read_string( "./src/test.rcs" );
+void eval( char *str ){
 	
+	// Get the total number of tokens in the string.
+	int num_of_tokens = count_tokens( str );
+	
+	// Print that number
+	printf( "Number Of Tokens: %d \n", num_of_tokens );
+	
+	// Get a pointer to a literal array of tokens.
+	struct Token *tokens = string_to_tokens( str );
+	
+	// Print those tokens
+	print_tokens( tokens, num_of_tokens );
+	
+	resolve_operation( tokens, num_of_tokens, 1 );
+	
+	printf("Resolved\n");
+	
+	print_tokens( tokens, num_of_tokens );
+	
+}
+
+int main(int argc, char *argv[]){
+	// Read file
+	char *str = file_read_string( "./src/test.rcs" );
+	// Print contents
+	printf("File Input:\n'%s'\n",str);
+	// Run through interpreter.
+	eval( str );
     return 0;
 }
