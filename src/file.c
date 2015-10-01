@@ -1,7 +1,10 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include "headers.h"
 
 /*
 * Reads an entire file to a string.
-* Returns it as a pointer. 
+* Returns a pointer to said string. 
 */
 
 char *file_read_string(char *filename){

@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "charlib.c"
-#include "token.c"
-#include "file.c"
+#include "headers.h"
 
 /* 
 * An operator is any char that represents a math operation.
@@ -26,13 +24,13 @@ int substring_to_number(char *str, int start, int end){
 }
 
 // Converts a string of chars to an array of Tokens.
-struct Token *string_to_tokens( char *str ){
+struct Token **string_to_tokens( char *str ){
 	
 	// Count how many tokens we should find in the string.
 	int num_of_tokens = count_tokens( str );
 	
 	// pointer to an Array of tokens (not to be confused with an array of pointers)
-	struct Token *tokens = malloc(sizeof(struct Token) * num_of_tokens);
+	struct Token **tokens = malloc(sizeof(*tokens) * num_of_tokens);
 	
 	int tokenIndex = 0;
 	
@@ -59,7 +57,7 @@ struct Token *string_to_tokens( char *str ){
 				
 				int value = substring_to_number(str,numberStart,i);
 				
-				struct Token t = create_token( T_NUMBER, value );
+				struct Token *t = create_token( T_NUMBER, value );
 				
 				tokens[ tokenIndex ] = t;
 				
@@ -69,16 +67,16 @@ struct Token *string_to_tokens( char *str ){
 			
 			// 
 			if ( char_is_symbol( c ) ){
-				struct Token t; 
+				struct Token *t; 
+				t = malloc( sizeof(struct Token) );
+				t->value = 0;
 				
-				t.value = 0;
-				
-				if( c == '+' ) t.type = T_PLUS;
-				if( c == '-' ) t.type = T_MINUS;
-				if( c == '*' ) t.type = T_MULTIPLY;
-				if( c == '/' ) t.type = T_DIVIDE;
-				if( c == '(' ) t.type = T_OPEN_P;
-				if( c == ')' ) t.type = T_CLOSE_P;
+				if( c == '+' ) t->type = T_PLUS;
+				if( c == '-' ) t->type = T_MINUS;
+				if( c == '*' ) t->type = T_MULTIPLY;
+				if( c == '/' ) t->type = T_DIVIDE;
+				if( c == '(' ) t->type = T_OPEN_P;
+				if( c == ')' ) t->type = T_CLOSE_P;
 				
 				tokens[ tokenIndex ] = t;
 				tokenIndex++;
@@ -93,13 +91,12 @@ struct Token *string_to_tokens( char *str ){
 	return tokens;
 }
 
-void print_tokens( struct Token *tokens, int length ){
+void print_tokens( struct Token **tokens, int length ){
 	int i;
 	for( i=0; i<length; i++){
-		print_token( &tokens[i] );
+		print_token( tokens[i] );
 	}
 }
-
 
 /* resolve_operation parameters: 
 * 	*tokens: is the array of tokens we're mutating, 
@@ -110,21 +107,21 @@ void print_tokens( struct Token *tokens, int length ){
 */
 
 
-void resolve_operation( struct Token *tokens, int length, int index){
+void resolve_operation( struct Token **tokens, int length, int index){
 	
 	// Create pointers to the token at [index] as well as it's "neighbours" (i+1 and i-1)
-	struct Token t_op, t_a, t_b;
+	struct Token *t_op, *t_a, *t_b;
 	t_op = tokens[index];
 	t_a  = tokens[index-1];
 	t_b  = tokens[index+1];
 	
 	// Extract the values from the numerical tokens.
 	int a,b;
-	a = t_a.value;
-	b = t_b.value;
+	a = t_a->value;
+	b = t_b->value;
 
 	// Extract the type from the operator.
-	TokenType t = t_op.type;
+	TokenType t = t_op->type;
 
 	// Calculate the result.
 	int result = 0;
@@ -137,7 +134,6 @@ void resolve_operation( struct Token *tokens, int length, int index){
 	if (t == T_DIVIDE )
 		result = a / b;
 
-	
 	/* 
 	* STITCHING ( this part is kinda hard to follow, here's a visualization. )	
 	* Lets say you want to stitch [3]
@@ -156,12 +152,12 @@ void resolve_operation( struct Token *tokens, int length, int index){
 	
 	// 'Shave' off the last two tokens as we have reduced the total size of the array.
 	// Rather than 'removing' we assign them to null tokens.
-	struct Token T_NULL = create_token(-1,0);
+	struct Token *T_NULL = create_token(-1,0);
 	tokens[length-1] = T_NULL;
 	tokens[length-2] = T_NULL;
 	
 	// Create a new 'result' token.
-	struct Token r = create_token(T_NUMBER,result);
+	struct Token *r = create_token(T_NUMBER,result);
 	// Insert the 'result' token.
 	tokens[index-1] = r;
 	
@@ -171,32 +167,25 @@ void resolve_operation( struct Token *tokens, int length, int index){
 
 void eval( char *str ){
 	
-	// Get the total number of tokens in the string.
+	// Count number of tokens, print it.
 	int num_of_tokens = count_tokens( str );
-	
-	// Print that number
 	printf( "Number Of Tokens: %d \n", num_of_tokens );
 	
-	// Get a pointer to a literal array of tokens.
-	struct Token *tokens = string_to_tokens( str );
+	// Convert the string to a token array.
+	struct Token **tokens = string_to_tokens( str );
 	
 	// Print those tokens
 	print_tokens( tokens, num_of_tokens );
-	
 	resolve_operation( tokens, num_of_tokens, 1 );
-	
 	printf("Resolved\n");
-	
 	print_tokens( tokens, num_of_tokens );
 	
 }
 
 int main(int argc, char *argv[]){
-	// Read file
-	char *str = file_read_string( "./src/test.rcs" );
-	// Print contents
+	// Read file, print, run it through the interpreter.
+	char *str = file_read_string( "test.rcs" );
 	printf("File Input:\n'%s'\n",str);
-	// Run through interpreter.
 	eval( str );
     return 0;
 }

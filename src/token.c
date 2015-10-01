@@ -1,9 +1,8 @@
-typedef enum {T_NUMBER,T_PLUS,T_MINUS,T_MULTIPLY,T_DIVIDE,T_OPEN_P,T_CLOSE_P} TokenType;
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-struct Token{
-	TokenType type;
-	int value;
-};
+#include "headers.h"
 
 /*
 * TYPES OF TOKENS
@@ -12,18 +11,19 @@ struct Token{
 * 	NUMERICAL
 */
 
-// Return a Token* with given parameters.
-struct Token create_token( TokenType type, int value ){
+// Return a struct Token* with given parameters.
+struct Token *create_token( TokenType type, int value ){
 	struct Token *t = malloc( sizeof( struct Token ) );
 	t->type = type;
 	t->value = value;
-	return *t;
+	return t;
 }
 
 // Convert enum TokenType to a string.
 char *TokenType_to_string( TokenType t ){
-	if( t>=0 && t<=6 ){
-		char *table[] = {"#","+","-","*","/","(",")"};
+	char *table[] = {"#","+","-","*","/","(",")"};
+	int l = sizeof( *table ) / sizeof( char );
+	if( t >= 0 && t <= l ){
 		return table[t];		
 	}else{
 		return "None";
@@ -40,32 +40,16 @@ void print_token( struct Token *t ){
 }
 
 // Counts the total number of tokens in a string
-
 int count_tokens( char *str ){
-	int l = strlen( str );
-	
-	int num_of_tokens = 0;
-	
-	int i,last;
+	int num_of_tokens = 0, l = strlen( str ), i;
 	
 	for( i=0; i<l; i++){
-		char c = str[i];
-		
+		char c = str[i];	
 		if ( char_is_symbol( c ) ){
 			num_of_tokens++;
-		}else{
-			
-			if ( char_is_numerical( c ) ){
-				if( !char_is_numerical( last ) ){
-					num_of_tokens++;
-				}
-			}else{
-				// Invalid token or whitespace
-			}
-			
+		}else if( char_is_numerical(c) && !char_is_numerical(str[i-1]) ) {
+			num_of_tokens++;
 		}
-		
-		last = c;
 	}
 	
 	return num_of_tokens;
